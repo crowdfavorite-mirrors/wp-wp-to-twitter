@@ -1,12 +1,10 @@
 <?php
-// WPT PRO: Apply contextual usage so that all functions can be used by independent users. //
-
 // function to test credentials
 function wtt_oauth_test( $auth=false, $context='' ) {
 	if ( !$auth ) {
 		return ( wtt_oauth_credentials_to_hash() == get_option('wtt_oauth_hash') );
 	} else {
-		$return = ( wtt_oauth_credentials_to_hash( $auth ) == get_user_meta( $auth,'wtt_oauth_hash',true ) );
+		$return = ( wtt_oauth_credentials_to_hash( $auth ) == wpt_get_user_verification( $auth ) );
 		if ( !$return && $context != 'verify' ) {
 			return ( wtt_oauth_credentials_to_hash() == get_option('wtt_oauth_hash') );
 		} else {
@@ -14,6 +12,17 @@ function wtt_oauth_test( $auth=false, $context='' ) {
 		}
 	}
 }
+
+function wpt_get_user_verification( $auth ) {
+	if ( get_option( 'jd_individual_twitter_users' ) != '1' ) {
+		return false; 
+	} else {
+		$auth = get_user_meta( $auth,'wtt_oauth_hash',true );
+		return $auth;
+	}
+	return false;
+}
+
 // function to make connection
 function wtt_oauth_connection( $auth=false ) {
 if ( !$auth ) {
@@ -28,7 +37,7 @@ if ( !$auth ) {
 	$ots = get_user_meta( $auth,'oauth_token_secret',true);
 }
 	if ( !empty( $ack ) && !empty( $acs ) && !empty( $ot ) && !empty( $ots ) ) {	
-		require_once( WP_PLUGIN_DIR . '/wp-to-twitter/jd_twitterOAuth.php' );
+		require_once( plugin_dir_path(__FILE__).'wpt_twitter_oauth.php' );
 		$connection = new jd_TwitterOAuth( $ack,$acs,$ot,$ots );
 		$connection->useragent = 'WP to Twitter http://www.joedolson.com/articles/wp-to-twitter';
 		return $connection;
@@ -77,7 +86,7 @@ switch ( $post['oauth_settings'] ) {
 				$message = 'failed';
 				if ( $connection = wtt_oauth_connection( $auth ) ) {
 					$protocol = ( get_option( 'wpt_http' ) == '1' )?'http:':'https:';
-					$data = $connection->get($protocol.'//api.twitter.com/1/account/verify_credentials.json');
+					$data = $connection->get($protocol.'//api.twitter.com/1.1/account/verify_credentials.json');
 					if ($connection->http_code == '200') {
 						$error_information = '';
 						$decode = json_decode($data);
@@ -96,7 +105,7 @@ switch ( $post['oauth_settings'] ) {
 						delete_option( 'wpt_curl_error' );
 					} else if ( $connection->http_code == 0 ) {
 						$error_information = __("WP to Twitter was unable to establish a connection to Twitter.",'wp-to-twitter'); 
-						update_option( 'wpt_curl_error',$error_information );
+						update_option( 'wpt_curl_error',"$error_information" );
 					} else {
 						$error_information = array("http_code"=>$connection->http_code,"status"=>$connection->http_header['status']);
 						$error_code = __("Twitter response: http_code $error_information[http_code] - $error_information[status]",'wp-to-twitter');
@@ -151,7 +160,7 @@ if ( !$auth ) {
 }
 $server_time = date( DATE_COOKIE );
 $protocol = ( get_option( 'wpt_http' ) == '1' )?'http:':'https:';
-$response = wp_remote_get( "$protocol//api.twitter.com/1/" );
+$response = wp_remote_get( "$protocol//api.twitter.com/1.1/" );
 if ( is_wp_error( $response ) ) {
 	$warning = '';
 	$error = $response->errors;
@@ -164,9 +173,9 @@ if ( is_wp_error( $response ) ) {
 		}
 		$warning .= "</ul>";
 	}
-	$ssl = __("Connection Problems? Try <a href='#wpt_http'>switching to <code>http</code> queries</a>.<br />",'wp-to-twitter');
+	$ssl = __("Connection Problems? Try <a href='#wpt_http'>switching to <code>http</code> queries</a>.",'wp-to-twitter');
 	$date = __("There was an error querying Twitter's servers",'wp-to-twitter');
-	$errors = "<p>".$ssl.$warning."</p>";
+	$errors = "<p>".$ssl."</p>".$warning;
 } else {
 	$date = date( DATE_COOKIE, strtotime($response['headers']['date']) );
 	$errors = '';
@@ -176,6 +185,14 @@ $form = ( !$auth )?'<form action="" method="post">':'';
 $nonce = ( !$auth )?wp_nonce_field('wp-to-twitter-nonce', '_wpnonce', true, false).wp_referer_field(false).'</form>':'';
 
 	if ( !wtt_oauth_test( $auth,'verify' ) ) {
+	
+	// show notification to authenticate with OAuth. No longer global; settings only.
+	if ( !wpt_check_oauth() ) {
+		$admin_url = ( is_plugin_active('wp-tweets-pro/wpt-pro-functions.php') )?admin_url('admin.php?page=wp-tweets-pro'):admin_url('options-general.php?page=wp-to-twitter/wp-to-twitter.php');
+		$message = sprintf(__("Twitter requires authentication by OAuth. You will need to <a href='%s'>update your settings</a> to complete installation of WP to Twitter.", 'wp-to-twitter'), $admin_url );
+		echo "<div class='error'><p>$message</p></div>";
+	}
+	
 		$ack = ( !$auth )?esc_attr( get_option('app_consumer_key') ):esc_attr( get_user_meta( $auth,'app_consumer_key', true ) );
 		$acs = ( !$auth )?esc_attr( get_option('app_consumer_secret') ):esc_attr( get_user_meta( $auth,'app_consumer_secret', true ) );
 		$ot = ( !$auth )?esc_attr( get_option('oauth_token') ):esc_attr( get_user_meta( $auth,'oauth_token', true ) );
@@ -190,8 +207,6 @@ $nonce = ( !$auth )?wp_nonce_field('wp-to-twitter-nonce', '_wpnonce', true, fals
 			<p>'.__('Your server time:','wp-to-twitter').' <code>'.$server_time.'</code> '.__("Twitter's time:").' <code>'.$date.'</code>.'.__( 'If these timestamps are not within 5 minutes of each other, your server will not connect to Twitter.','wp-to-twitter').'</p>
 			'.$errors.'
 			<p>'.__('Your server timezone (should be UTC,GMT,Europe/London or equivalent):','wp-to-twitter').date_default_timezone_get().'</p>
-
-			<p>'.__('<em>Note</em>: you will not add your Twitter user information to WP to Twitter; it is not used in this authentication method.', 'wp-to-twitter').'</p> 
 			</div>
 			'.$form.'
 				<fieldset class="options">
@@ -254,7 +269,7 @@ $nonce = ( !$auth )?wp_nonce_field('wp-to-twitter-nonce', '_wpnonce', true, fals
 		} else {
 			$submit = '<input type="checkbox" name="oauth_settings" value="wtt_twitter_disconnect" id="disconnect" /> <label for="disconnect">'.__('Disconnect your WordPress and Twitter Account','wp-to-twitter').'</label>';
 		}
-		$warning =  ( get_option('wpt_authentication_missing') == 'true' )?'<p>'.__('<strong>Troubleshooting tip:</strong> Connected, but getting a notice that your Authentication credentials are missing or incorrect? Check whether your Access token has read and write permission. If not, you\'ll need to create a new token.','wp-to-twitter').'</p>':'';
+		$warning =  ( get_option('wpt_authentication_missing') )?'<p>'.__('<strong>Troubleshooting tip:</strong> Connected, but getting a error that your Authentication credentials are missing or incorrect? Check that your Access token has read and write permission. If not, you\'ll need to create a new token. <a href="http://www.joedolson.com/articles/wp-to-twitter/support-2/#q1">Read the FAQ</a>','wp-to-twitter').'</p>':'';
 		if ( !is_wp_error( $response ) ) { 
 			$diff = ( abs( time() - strtotime($response['headers']['date']) ) > 300 )?'<p> '.__( 'Your time stamps are more than 5 minutes apart. Your server could lose its connection with Twitter.','wp-to-twitter').'</p>':''; 
 		} else { 
@@ -280,8 +295,14 @@ $nonce = ( !$auth )?wp_nonce_field('wp-to-twitter-nonce', '_wpnonce', true, fals
 					</div>
 				</div>		
 				'.$nonce.'
-			<p>'.__('Your server time:','wp-to-twitter').' <code>'.$server_time.'</code>.<br />'.__('Twitter\'s current server time: ','wp-to-twitter').'<code>'.$date.'</code>.</p>
+			<p>'.__('Your server time:','wp-to-twitter').' <code>'.$server_time.'</code>.<br />'.__('Twitter\'s server time: ','wp-to-twitter').'<code>'.$date.'</code>.</p>
 			'.$errors.$diff.'</div>' );
+			// sent as debugging
+			global $wpt_server_string;
+			$wpt_server_string = 
+			__('Your server time:','wp-to-twitter').' <code>'.$server_time.'</code>
+			'.__('Twitter\'s server time: ','wp-to-twitter').'<code>'.$date.'</code>
+			'.$errors.$diff;
 	}
 	if ( !$auth ) {
 		echo "</div>";
