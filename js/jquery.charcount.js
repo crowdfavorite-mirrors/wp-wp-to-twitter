@@ -16,7 +16,6 @@
 (function($) {
 
 	$.fn.charCount = function(options){
-	  
 		// default configuration properties
 		var defaults = {	
 			allowed: 140,		
@@ -27,16 +26,15 @@
 			cssExceeded: 'exceeded',
 			counterText: ''
 		}; 
-			
 		var options = $.extend(defaults, options); 
 		
 		function calculate(obj){
 			var count = $(obj).val().length;
-			
+			// supported shortcodes
 			var urlcount = $(obj).val().indexOf('#url#') > -1 ? 15 : 0;
 			var titlecount = $(obj).val().indexOf('#title#') > -1 ? ($('#title').val().length-7) : 0;
 			var namecount = $(obj).val().indexOf('#blog#') > -1 ? ($('#wp-admin-bar-site-name').val().length-6) : 0;
-			
+
 			var available = options.allowed - (count+urlcount+titlecount+namecount);
 			
 			if(available <= options.warning && available >= 0){
@@ -53,7 +51,7 @@
 		};
 				
 		this.each(function() {  			
-			$(this).after('<'+ options.counterElement +' class="' + options.css + '">'+ options.counterText +'</'+ options.counterElement +'>');
+			$(this).after('<'+ options.counterElement +' aria-live="polite" aria-atomic="true" class="' + options.css + '">'+ options.counterText +'</'+ options.counterElement +'>');
 			calculate(this);
 			$(this).keyup(function(){calculate(this)});
 			$(this).change(function(){calculate(this)});

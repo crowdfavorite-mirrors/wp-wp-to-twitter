@@ -2,16 +2,18 @@
 Contributors: joedolson
 Donate link: http://www.joedolson.com/donate.php
 Tags: twitter, microblogging, su.pr, bitly, yourls, redirect, shortener, post, links
-Requires at least: 2.9.2 (partial)
-Tested up to: 3.4.2
+Requires at least: 3.1.4
+Tested up to: 3.5.1
 License: GPLv2 or later
 Stable tag: trunk
 
-Auto-posts a Twitter update when you update your WordPress blog or blogroll, with your chosen URL shortening service. Requires PHP 5. 
+Auto-posts a Twitter update when you update your WordPress blog or blogroll, with your chosen URL shortening service.
 
 == Description ==
 
-WP to Twitter automatically posts a Tweet from your WordPress blog to Twitter using your URL shortening service to provide a link back to your post from Twitter. 
+WP to Twitter automatically posts Tweets from WordPress to Twitter using your URL shortening service to provide a link back to your post from Twitter. 
+
+Upgrade to [WP Tweets Pro](http://www.joedolson.com/articles/wp-tweets-pro/)
 
 The plugin supports a customizable Tweet template for updating or editing posts and pages, supports your custom post types, and allows you to write a custom Tweet for each post, using a selection of custom template tags to generate the text. 
 
@@ -24,7 +26,7 @@ Additional features include:
 * Support for Google Analytics
 * Limiting Tweeting from specific categories
 
-Any status update you write which is longer than 140 characters will be truncated by the plugin. 
+Any status update longer than 140 characters will be truncated by the plugin. 
 
 Upgrade to [WP Tweets Pro](http://www.joedolson.com/articles/wp-tweets-pro/) for extra features, including:
 
@@ -36,24 +38,10 @@ Upgrade to [WP Tweets Pro](http://www.joedolson.com/articles/wp-tweets-pro/) for
 
 Translations:
 
-Languages available: [visit the WP to Twitter translations page to see how complete these are](http://translate.joedolson.com/projects/wp-to-twitter).
+Visit the [WP to Twitter translations page](http://translate.joedolson.com/projects/wp-to-twitter) to see how complete these are.
 
-
-* French: Francois-Xavier Benard
-* Italian: Updated by [Gianni Diurno](http://www.gidibao.net) and [Aurelio De Rosa](http://www.audero.it)
-* Dutch: [Rashid Niamat](http://niamatmediagroup.nl/)
-* Brazilian Portugese: [Miriam de Paula](http://wpmidia.com.br)
-* Lithuanian [Nata Strazda](http://www.designcontest.com)
-* Simplified Chinese: [HostUCan](http://www.hostucan.com)
-* Traditional Chinese: [HostUCan](http://www.hostucan.com)
-* Belarussian: [Alex Alexandrov](http://www.webhostingrating.com)
-* Ukrainian: [Alyona Lompar](http://www.webhostinggeeks.com
-* Spanish: [David Gil P&eacute;rez](http://www.sohelet.com)
-* Russian: [Burkov Boris](http://chernobog.ru)
-* Estonian: [Raivo Ratsep](http://raivoratsep.com)
-* Romanian: [Jibo](http://jibo.ro)
-* Danish: [Rasmus Himmelstrup](http://seoanalyst.dk)
-* Japanese: [kndb](http://blog.layer8.sh/)
+Languages available (in order of completeness):
+Danish, French, Italian, Catalan, Dutch, Chinese, Portuguese, Japanese, Romanian, Estonian, German, Ukrainian, Russian, Lithuanian, Belarusian, Irish, Spanish, Turkish, Persian
 
 Translating my plug-ins is always appreciated. Visit <a href="http://translate.joedolson.com">my translations site</a> to start getting your language into shape!
 
@@ -62,6 +50,88 @@ Credits:
 Contributions by [Thor Erik](http://www.thorerik.net), Bill Berry and [Andrea Baccega](http://www.andreabaccega.com).  Some code previously contributed is no longer in this plug-in. Other bug fixes and related citations can be found in the changelog.
 
 == Changelog ==
+
+= 2.6.1 =
+
+* Bug in Goo.gl URL shortening. Incorrect URL posted.
+* Translatable role names for Permissions.
+
+= 2.6.0 =
+
+* Support for new features in WP Tweets PRO 1.4.0.
+* Minor interface tweaks.
+* Removed settings export (it was out of date and nobody sent it anyway).
+* Bug fix: bad settings link in API failure warnings.
+* Bug fix: URL shortener returned error when not shortening URLs.
+* Bug fix: Category limits are not applied if 'category' is not an available taxonomy.
+* Bug fix: Prevent publish actions from running twice for scheduled posts.
+* Change: significant changes to large portions of plug-in text. My apologies to translators...but there's less text, now!
+* File restructuring and code cleanup.
+* Added Danish translation.
+* Updated French translation.
+
+= 2.5.9 =
+
+* Using tag slug instead of tag name is a problem for languages with characters outside of [RFC 1738](http://www.faqs.org/rfcs/rfc1738.html) URL specs. Transformed into selectable option, default off.
+
+= 2.5.8 =
+
+* WP to Twitter now uses tag slug instead of tag name to convert tags into hashtags. Allows you to customize the hashtag sent for each tag.
+* Set up changes necessary for pending t.co URL length change on 2/20/2013. [Blog post](https://dev.twitter.com/blog/upcoming-tco-changes)
+* Updated: Danish, French, German translations.
+
+= 2.5.7 =
+
+* Minor fixes for stupid mistakes. I apologize for the inconvenience.
+
+= 2.5.6 =
+
+* Various fixes related to WP Tweets PRO updates.
+
+= 2.5.5 =
+
+* Backed out an efficiency tweak that didn't work as expected. 
+
+= 2.5.4 =
+
+* Modified system for handling scheduled posts to get around recent issues with Tweeting scheduled posts.
+* Update to Italian translation
+ 
+= 2.5.3 =
+
+* Truncation fix: Tweet not truncated if no template tags in use.
+* Now sanitizing titles and categories when using for Google analytics
+* Updated Italian translation, added Catalan translation.
+
+= 2.5.2 =
+
+* Another bug fix to truncating. 
+* Updated Italian translation.
+
+= 2.5.1 =
+
+* Removed hardcoding of /wp-content/
+* Fixed truncation bug causing Tweets to be truncated when unnecessary.
+* Improved error messages.
+
+= 2.5.0 =
+
+* Updated French Translation
+* Fixed issue with multiple-savings of post meta data
+* Added #displayname# template tag.
+* Deprecated support for WordPress versions before 3.0.6.
+* Updated to Twitter API endpoint version 1.1
+* Updated: t.co URLs are now 20 characters. (Were 19.)
+* Change: length of any prepended or appended text is included in character counts.
+* Bug fix: Prepend/Append fields not stripped.
+* Bug fix: undefined variable when Tweeting links
+* Bug fix: truncating of Tweets when no URL shortcode is included.
+* Bug fix: Post had to have a successful previous tweet in order to display failed tweets.
+* Bug fix: if your Twitter application has read/write/dm capabilities, will no longer claim you don't have read/write caps.
+* Improved information in failed tweet listing
+* Clear admin message immediately when clearing errors.
+* Change: test type for default Tweet is positive test if Tweets should be posted by default; negative if not. 
+* Verified: WP 3.5 compatibility.
 
 = 2.4.13 =
 
@@ -727,4 +797,4 @@ Writing and maintaining a plug-in is a lot of work. You can help me by providing
 
 == Upgrade Notice ==
 
-* 2.4.8 Broken #account# template tag.
+* 2.6.0 Bug fixes, new translations, WP Tweets PRO features.
